@@ -1,17 +1,19 @@
-# StormGate Analytics Project
+# Game Review Analytics Pipeline
 
-A comprehensive analytics project for analyzing game reviews using Aspect-Based Sentiment Analysis (ABSA) and interactive data visualization dashboards.
+A comprehensive pipeline for analyzing game reviews using Aspect-Based Sentiment Analysis (ABSA) and interactive data visualization dashboards. This project demonstrates the complete workflow from Steam API data collection to professional-grade analytics dashboards, using StormGate as a case study.
 
-![StormGate Analytics Dashboard](Cover.png)
+![Game Review Analytics Dashboard](Cover.png)
 
 ## 🎯 Project Overview
 
-This project provides a complete pipeline for analyzing game reviews, from data collection to interactive visualization. It combines machine learning techniques for sentiment analysis with professional-grade dashboards to provide insights into player feedback and version update impacts.
+This project provides a complete, reusable pipeline for analyzing any game's reviews, from Steam API data collection to interactive visualization. It combines machine learning techniques for Aspect-Based Sentiment Analysis (ABSA) with professional-grade dashboards to provide insights into player feedback and version update impacts. 
+
+**StormGate is used as a case study** to demonstrate the pipeline's capabilities, but the system is designed to work with any Steam game by simply changing the app ID and game-specific data.
 
 ## 📁 Project Structure
 
 ```
-StormGate-Analytics/
+Game-Review-Analytics-Pipeline/
 ├── ABSA/                                    # Aspect-Based Sentiment Analysis
 │   ├── fetch_and_save_reviews.py           # Steam reviews data collection
 │   ├── absa_embedding.py                   # ML model for aspect sentiment analysis
@@ -42,7 +44,7 @@ StormGate-Analytics/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd StormGate-Analytics
+   cd Game-Review-Analytics-Pipeline
    ```
 
 2. **Install dependencies**
@@ -61,9 +63,10 @@ StormGate-Analytics/
 
 #### 1. Data Collection and Analysis
 
-**Collect Steam Reviews:**
+**Collect Steam Reviews for Any Game:**
 ```bash
 cd ABSA
+# Edit fetch_and_save_reviews.py to change STEAM_APP_ID
 python fetch_and_save_reviews.py
 ```
 
@@ -159,13 +162,13 @@ python stormgate_dashboard.py
 
 ## 📈 Data Insights
 
-The project analyzes:
+The project analyzes (using StormGate as a case study):
 - **21,859+ processed reviews** from StormGate
 - **15 unique aspects** (Gameplay, Graphics, Audio, etc.)
 - **10 version updates** with impact analysis
 - **Time range**: August 2024 to October 2025
 
-### Key Findings
+### Key Findings (StormGate Case Study)
 - **Overall Positive Rate**: ~44%
 - **Most Discussed Aspects**: General, Nostalgia/DevPedigree, Progression
 - **Version Impact**: Patch 0.4.1 and 0.4.2 showed significant positive impact
@@ -218,7 +221,7 @@ The project analyzes:
 
 ### Data Collection Settings
 ```python
-STEAM_APP_ID = 2012510  # Stormgate app ID
+STEAM_APP_ID = 2012510  # Change this to any Steam game's app ID
 LANGUAGE = "english"    # Review language filter
 MAX_REVIEWS = 5000     # Maximum reviews to fetch
 DELAY_SECONDS = 2.0    # Request delay
@@ -232,6 +235,13 @@ learning_rate = 0.001
 epochs = 50
 ```
 
+### Adapting to Other Games
+To analyze a different game:
+1. **Find the Steam App ID**: Visit the game's Steam store page and copy the ID from the URL
+2. **Update Configuration**: Change `STEAM_APP_ID` in `ABSA/fetch_and_save_reviews.py`
+3. **Collect Data**: Run the data collection pipeline
+4. **Update Dashboard**: Modify dashboard titles and labels as needed
+
 ## 🙏 Acknowledgments
 
 - **Steam API**: For providing review data
@@ -239,5 +249,24 @@ epochs = 50
 - **Plotly**: For interactive visualization
 - **Streamlit/Dash**: For web application frameworks
 
+## 📞 Support
 
+For questions or issues:
+1. Check the documentation in each folder
+2. Review existing issues
+3. Create a new issue with detailed description
+
+## 🔮 Future Enhancements
+
+- **Multi-Game Support**: Extend to analyze multiple games simultaneously
+- **Real-time Data Updates**: Live dashboard updates
+- **Advanced ML Models**: Transformer-based aspect detection
+- **Cross-Platform Support**: Extend beyond Steam to other platforms
+- **API Integration**: RESTful API for dashboard data
+- **Mobile App**: Native mobile dashboard
+- **Automated Reporting**: Scheduled analysis reports
+
+---
+
+**Built with ❤️ for the gaming community**
 
