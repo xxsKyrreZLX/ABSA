@@ -1,0 +1,76 @@
+# Ignore everything by default
+*
+
+# Allow specific directories and files
+!ABSA/
+!Dashboard/
+!README.md
+!Cover.png
+!.gitignore
+
+# Allow all files in ABSA directory
+!ABSA/**
+
+# Allow all files in Dashboard directory  
+!Dashboard/**
+
+# Ignore common Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Ignore virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore logs and temporary files
+*.log
+temp/
+tmp/
+cache/
+
+# Ignore large data files (optional)
+# *.csv
+# *.json
+# *.pkl
+# *.h5
+# *.hdf5
