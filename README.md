@@ -77,20 +77,10 @@ python absa_embedding.py
 
 #### 2. Generate Interactive Dashboard
 
-**Enhanced HTML Dashboard (Recommended):**
+**Enhanced HTML Dashboard :**
 ```bash
 cd Dashboard
 python enhanced_dashboard.py
-```
-
-**Streamlit Dashboard:**
-```bash
-streamlit run streamlit_dashboard.py
-```
-
-**Dash Dashboard:**
-```bash
-python stormgate_dashboard.py
 ```
 
 ## 📊 Features
@@ -248,25 +238,3 @@ To analyze a different game:
 - **Qwen Team**: For the embedding model
 - **Plotly**: For interactive visualization
 - **Streamlit/Dash**: For web application frameworks
-
-## 📞 Support
-
-For questions or issues:
-1. Check the documentation in each folder
-2. Review existing issues
-3. Create a new issue with detailed description
-
-## 🔮 Future Enhancements
-
-- **Multi-Game Support**: Extend to analyze multiple games simultaneously
-- **Real-time Data Updates**: Live dashboard updates
-- **Advanced ML Models**: Transformer-based aspect detection
-- **Cross-Platform Support**: Extend beyond Steam to other platforms
-- **API Integration**: RESTful API for dashboard data
-- **Mobile App**: Native mobile dashboard
-- **Automated Reporting**: Scheduled analysis reports
-
----
-
-**Built with ❤️ for the gaming community**
-
