@@ -41,10 +41,10 @@ def embed_sentences(sentences: List[str], batch_size: int = 16) -> np.ndarray:
     return np.array(results)
 
 
-# ---------- 构建训练集 ----------
+# ---------- Build Training Dataset ----------
 def build_training_dataset(train_df: pd.DataFrame) -> pd.DataFrame:
     """
-    从人工标注的训练数据中直接提取 snippet / aspect / sentiment。
+    Extract snippet / aspect / sentiment directly from manually labeled training data.
     """
     examples = []
     total = len(train_df)
@@ -71,7 +71,7 @@ def build_training_dataset(train_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(examples)
 
 
-# ---------- （保留）分句函数（备用） ----------
+# ---------- Clause Splitting Function (Reserved/Backup) ----------
 def split_into_clauses(text: str) -> List[str]:
     if not isinstance(text, str) or not text.strip():
         return []
@@ -98,7 +98,7 @@ def split_into_clauses(text: str) -> List[str]:
     return clauses
 
 
-# ---------- Logistic 分类模型 ----------
+# ---------- Logistic Classification Model ----------
 class LogisticModel(nn.Module):
     def __init__(self, in_dim, out_dim):
         super().__init__()
@@ -107,32 +107,32 @@ class LogisticModel(nn.Module):
         return self.linear(x)
 
 
-# ---------- 训练模型 ----------
+# ---------- Train Model ----------
 def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
     X_texts = df_clauses["clause"].tolist()
     y_aspect = df_clauses["aspect"].tolist()
     y_sent = df_clauses["sentiment"].tolist()
 
-    # 1. 句子嵌入
+    # 1. Sentence Embedding
     X = embed_sentences(X_texts)
 
-    # 2. 标签编码
+    # 2. Label Encoding
     le_aspect = LabelEncoder()
     le_sent = LabelEncoder()
     Y_aspect = le_aspect.fit_transform(y_aspect)
     Y_sent = le_sent.fit_transform(y_sent)
 
-    # 3. 划分训练 / 测试集
+    # 3. Split Train / Test Set
     X_train, X_test, ya_train, ya_test, ys_train, ys_test = train_test_split(
         X, Y_aspect, Y_sent, test_size=0.3, random_state=42
     )
 
-    # 4. 标准化
+    # 4. Standardization
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
-    # 5. 转换为 torch Tensor
+    # 5. Convert to torch Tensor
     X_train_t = torch.tensor(X_train_s, dtype=torch.float32)
     X_test_t = torch.tensor(X_test_s, dtype=torch.float32)
     ya_train_t = torch.tensor(ya_train, dtype=torch.long)
@@ -140,14 +140,14 @@ def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
     ya_test_t = torch.tensor(ya_test, dtype=torch.long)
     ys_test_t = torch.tensor(ys_test, dtype=torch.long)
 
-    # 6. 定义模型与优化器
+    # 6. Define Model and Optimizer
     model_aspect = LogisticModel(X_train_t.shape[1], len(le_aspect.classes_))
     model_sent = LogisticModel(X_train_t.shape[1], len(le_sent.classes_))
     criterion = nn.CrossEntropyLoss()
     optimizer_aspect = optim.Adam(model_aspect.parameters(), lr=lr)
     optimizer_sent = optim.Adam(model_sent.parameters(), lr=lr)
 
-    # 7. 训练过程
+    # 7. Training Process
     train_losses_aspect, test_losses_aspect = [], []
     train_losses_sent, test_losses_sent = [], []
 
@@ -168,7 +168,7 @@ def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
         optimizer_aspect.step()
         optimizer_sent.step()
 
-        # 测试集 loss
+        # Test Set Loss
         model_aspect.eval()
         model_sent.eval()
         with torch.no_grad():
@@ -185,7 +185,7 @@ def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
                   f"Aspect Loss: {loss_a.item():.4f}/{test_loss_a.item():.4f} | "
                   f"Sent Loss: {loss_s.item():.4f}/{test_loss_s.item():.4f}")
 
-    # 8. Loss 曲线（保存）
+    # 8. Loss Curve (Save)
     plt.figure(figsize=(8,4))
     plt.plot(train_losses_aspect, label='Train Aspect Loss')
     plt.plot(test_losses_aspect, label='Test Aspect Loss')
@@ -199,7 +199,7 @@ def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
     plt.savefig("training_loss_curve.png")
     plt.close()
 
-    # 9. 训练 / 测试精度
+    # 9. Train / Test Accuracy
     with torch.no_grad():
         pred_a_train = model_aspect(X_train_t).argmax(dim=1)
         pred_a_test = model_aspect(X_test_t).argmax(dim=1)
@@ -257,7 +257,7 @@ def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
           f"RMSE={rmse_sent:.3f}, AUC={auc_sent:.3f}")
 
 
-    # 10. 保存模型（临时，不含 prototypes）
+    # 10. Save Model (Temporary, without prototypes)
     torch.save({
         "scaler": scaler,
         "model_aspect": model_aspect.state_dict(),
@@ -271,10 +271,10 @@ def train_model(df_clauses: pd.DataFrame, num_epochs=80, lr=5e-4):
     return scaler, model_aspect, model_sent, le_aspect, le_sent
 
 
-# ---------- 构建 aspect prototypes（并返回每个 aspect 的 snippet embedding 与文本） ----------
+# ---------- Build Aspect Prototypes (and return snippet embeddings and texts for each aspect) ----------
 def build_aspect_prototypes(df_train: pd.DataFrame, embed_model, scaler):
     """
-    返回：
+    Returns:
       - aspect_prototypes: dict[aspect] = prototype_vector (numpy 1-D)
       - aspect_snippets: dict[aspect] = [snippet_texts]
       - aspect_snippet_embeddings: dict[aspect] = numpy array shape (n_snippets, dim)
@@ -291,11 +291,11 @@ def build_aspect_prototypes(df_train: pd.DataFrame, embed_model, scaler):
     aspect_snippet_embeddings = {}
 
     for a, texts in aspect_texts.items():
-        # 计算每个 snippet 的 embedding（归一化）
+        # Compute embedding for each snippet (normalized)
         emb = embed_model.encode(texts, normalize_embeddings=True)
-        # 标准化
+        # Standardization
         emb_scaled = scaler.transform(emb)
-        # prototype 为均值（已标准化空间）
+        # Prototype is the mean (in standardized space)
         prototype = np.mean(emb_scaled, axis=0)
         aspect_prototypes[a] = prototype
         aspect_snippets[a] = texts
@@ -317,47 +317,48 @@ def predict_review_multilabel_from_raw(
     top_k_snippet: int = 1
 ):
     """
-    对单条 raw 评论进行多-aspect 检测。
-    - snippet 候选来自于对评论的分句（split_into_clauses）
-    - 对每个 aspect，用 prototype 与每个 clause 的 embedding 计算 cosine，选最优 clause 作为该 aspect 的 snippet
-    - sentiment 使用选中的 clause 的 embedding 进行预测（如果没有 clause，则用整条评论）
-    返回：list of dict {aspect, sentiment, snippet, score, snippet_score}
+    Perform multi-aspect detection on a single raw review.
+    - Snippet candidates come from splitting the review into clauses (split_into_clauses)
+    - For each aspect, compute cosine similarity between prototype and each clause's embedding, 
+      select the best clause as the snippet for that aspect
+    - Sentiment is predicted using the selected clause's embedding (if no clause, use the entire review)
+    Returns: list of dict {aspect, sentiment, snippet, score, snippet_score}
     """
     if not isinstance(text, str) or not text.strip():
         return []
 
-    # 1) 将评论拆成候选 snippet（句子/子句）
+    # 1) Split review into candidate snippets (sentences/clauses)
     clauses = split_into_clauses(text)
     if len(clauses) == 0:
         clauses = [text.strip()]
 
-    # 2) 计算这些 clause 的 embedding（与训练时同样的 embed_model + scaler）
-    #    注意：embed_model.encode(..., normalize_embeddings=True) 返回的是 L2 归一化的原始 embedding
+    # 2) Compute embeddings for these clauses (using same embed_model + scaler as training)
+    #    Note: embed_model.encode(..., normalize_embeddings=True) returns L2-normalized raw embedding
     clause_emb = embed_model.encode(clauses, normalize_embeddings=True)  # shape (n_clauses, dim)
     clause_emb_scaled = scaler.transform(clause_emb)  # shape (n_clauses, dim)
 
-    # 预计算 norms
+    # Precompute norms
     clause_norms = np.linalg.norm(clause_emb_scaled, axis=1) + 1e-9  # (n_clauses,)
 
     results = []
-    # 3) 对每个 aspect prototype 做匹配
+    # 3) Match each aspect prototype
     for aspect, proto in aspect_prototypes.items():
-        # proto: 1-D numpy vector in same scaled space (因为你在 build_aspect_prototypes 用的是 emb_scaled)
+        # proto: 1-D numpy vector in same scaled space (since build_aspect_prototypes uses emb_scaled)
         proto_norm = np.linalg.norm(proto) + 1e-9
 
-        # cosine 相似度：每个 clause 与 prototype
+        # Cosine similarity: each clause with prototype
         sims = (clause_emb_scaled @ proto) / (clause_norms * proto_norm + 1e-12)  # shape (n_clauses,)
         top_idx = int(np.argmax(sims))
         top_sim = float(sims[top_idx])
 
         if top_sim < sim_threshold:
-            # 没达到阈值 -> 不认为评论含该 aspect
+            # Below threshold -> review does not contain this aspect
             continue
 
         chosen_snippet = clauses[top_idx]
-        snippet_score = top_sim  # 与 prototype 的相似度（即 chosen clause 与 prototype 的 cosine）
+        snippet_score = top_sim  # Similarity with prototype (i.e., cosine between chosen clause and prototype)
 
-        # 4) sentiment 预测：使用选中 snippet 的 embedding（经过 scaler 的向量）
+        # 4) Sentiment prediction: use selected snippet's embedding (vector after scaler)
         snippet_emb_vec = clause_emb_scaled[top_idx:top_idx+1]  # shape (1, dim)
         snippet_emb_tensor = torch.tensor(snippet_emb_vec, dtype=torch.float32)
         with torch.no_grad():
@@ -373,28 +374,28 @@ def predict_review_multilabel_from_raw(
             "snippet_score": float(snippet_score)
         })
 
-    # 排序（可选）
+    # Sort (optional)
     #results.sort(key=lambda x: x["score"], reverse=True)
     return results
 
 
 
-# ---------- 主流程 ----------
+# ---------- Main Workflow ----------
 if __name__ == "__main__":
-    # 1) 读取训练数据并构建训练集
+    # 1) Read training data and build training dataset
     train_df = pd.read_csv(TRAIN_CSV)
     df_train_clauses = build_training_dataset(train_df)
-    print(f"构建训练集样本数: {len(df_train_clauses)}")
+    print(f"Training dataset sample count: {len(df_train_clauses)}")
 
-    # 2) 训练模型
+    # 2) Train model
     scaler, clf_aspect, clf_sent, le_aspect, le_sent = train_model(df_train_clauses)
 
-    # 3) 基于训练样本构建 aspect prototypes（并保存到模型文件）
+    # 3) Build aspect prototypes based on training samples (and save to model file)
     aspect_prototypes, aspect_snippets, aspect_snippet_embeddings = build_aspect_prototypes(
         df_train_clauses, embed_model, scaler
     )
 
-    # 将 prototypes 等信息与模型一起保存（覆盖原先的文件）
+    # Save prototypes and other info together with model (overwrite previous file)
     model_dict = {
         "scaler": scaler,
         "model_aspect": clf_aspect.state_dict(),
@@ -409,13 +410,13 @@ if __name__ == "__main__":
     torch.save(model_dict, "absa_torch_model_with_prototypes.pth")
     print("✅ Full model + prototypes saved to absa_torch_model_with_prototypes.pth")
 
-    # ---------- 替换主流程中的推理与保存（只输出 raw 数据） ----------
+    # ---------- Replace inference and saving in main workflow (only output raw data) ----------
     if __name__ == "__main__":
-        # ... 你之前的训练 + prototype 构建代码保持不变，确保你在这之前已经得到了：
+        # ... Previous training + prototype building code remains unchanged, ensure you have obtained:
         # scaler, clf_aspect, clf_sent, le_aspect, le_sent
-        # aspect_prototypes, aspect_snippets, aspect_snippet_embeddings  （后两项现在不会被用于输出训练 snippet）
+        # aspect_prototypes, aspect_snippets, aspect_snippet_embeddings  (last two are not used for outputting training snippets)
 
-        # 下面是替换后的“第 4 部分”：对 raw CSV 的逐条预测（并把结果保存在一行/一条评论里）
+        # Below is the replaced "Part 4": Predict each row in raw CSV (and save results in one row/one review)
         raw_df = pd.read_csv(RAW_CSV)
         output_rows = []
         total = len(raw_df)
@@ -442,12 +443,12 @@ if __name__ == "__main__":
                 "predicted_aspects": json.dumps(preds, ensure_ascii=False)
             })
 
-            # 进度提示
+            # Progress indicator
             if (i + 1) % 100 == 0 or (i + 1) == total:
                 print(f"[Predict] {i + 1}/{total} reviews processed")
 
         df_out = pd.DataFrame(output_rows)
 
-        # 保存时把列顺序固定成和输入一致（这里保留 raw_id, text, predicted_aspects）
+        # When saving, keep column order consistent with input (here keep raw_id, text, predicted_aspects)
         df_out.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
         print(f"✅ Prediction results saved to {OUTPUT_CSV}")
